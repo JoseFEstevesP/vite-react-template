@@ -1,24 +1,43 @@
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
-function App() {
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <p>Choo Choo! This is an example of a Vite + React app running on Railway.</p>
-      </div>
-    </>
-  )
-}
-
-export default App
+import { useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedRouteRol } from './components/ProtectedRouteRol';
+import { userData } from './context/userDataUser';
+import { userToken } from './context/userToken';
+import Administrador from './page/Admin';
+import Error404 from './page/Error404';
+import Home from './page/Home';
+import NoteStudent from './page/NoteStudent';
+import Options from './page/Options';
+import Teacher from './page/Teacher';
+const App = () => {
+	const [token, setToken] = useState(sessionStorage.getItem('token'));
+	const [dataUser, setDataUser] = useState(
+		sessionStorage.getItem('dataUser')
+			? JSON.parse(sessionStorage.getItem('dataUser'))
+			: ''
+	);
+	return (
+		<userToken.Provider value={{ token, setToken }}>
+			<userData.Provider value={{ dataUser, setDataUser }}>
+				<Routes>
+					<Route path='/' element={<Home />} />
+					<Route element={<ProtectedRoute />}>
+						<Route path='/options' element={<Options />} />
+						<Route element={<ProtectedRouteRol rolCompared='administrador' />}>
+							<Route path='/admin/*' element={<Administrador />} />
+						</Route>
+						<Route element={<ProtectedRouteRol rolCompared='profesor' />}>
+							<Route path='/teacher/*' element={<Teacher />} />
+						</Route>
+						<Route element={<ProtectedRouteRol rolCompared='estudiante' />}>
+							<Route path='/student/*' element={<NoteStudent />} />
+						</Route>
+					</Route>
+					<Route path='*' element={<Error404 />} />
+				</Routes>
+			</userData.Provider>
+		</userToken.Provider>
+	);
+};
+export default App;
